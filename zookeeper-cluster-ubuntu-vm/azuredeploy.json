@@ -72,13 +72,10 @@
     "availabilitySetName": "zookeeperAvSet",
     "virtualNetworkName": "zookeeperVNET",    
     "publicIPAddressType": "Dynamic",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "subnet1Name": "Subnet-1",
-    "subnet1Prefix": "10.0.0.0/24",
     "nicName": "zookeeperNIC",
-    "subnet1Ref": "[concat(variables('vnetID'),'/subnets/', variables('subnet1Name'))]",
-    "customScriptFilePath": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/zookeeper-cluster-ubuntu-vm/zookeeper.sh",
+    "customScriptFilePath": "https://raw.githubusercontent.com/aviperetz34/azure-quickstart-templates/master/zookeeper-cluster-ubuntu-vm/zookeeper.sh",
     "customScriptCommandToExecute": "sh zookeeper.sh",
+	"sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
     "vmExtensionName": "zookeeperExtension"
   },
   "resources": [
@@ -121,8 +118,7 @@
         "count": "[parameters('scaleNumber')]"
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', 'publicIP', copyIndex())]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+        "[concat('Microsoft.Network/publicIPAddresses/', 'publicIP', copyIndex())]"
       ],
       "properties": {
         "ipConfigurations": [
@@ -130,7 +126,7 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat('10.0.172.', copyIndex(4))]",
+              "privateIPAddress": "[concat('10.0.0.22', copyIndex(4))]",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat('publicIP', copyIndex()))]"
               },
@@ -176,6 +172,7 @@
                 }
               ]
             }
+		  }
         },
         "storageProfile": {
           "imageReference": {
