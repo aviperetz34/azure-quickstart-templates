@@ -61,13 +61,16 @@
       "metadata": {
         "description": "Number of Zookeeper nodes to provision"
       }
+    },
+	"sshKeyData": {
+      "type": "string",
+      "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVAI2NxbGImMpoahCUg73eF/DyfQcMbQ8/xO8/9TGJnlpLh2k3tBQ4N1GQZYFLz/qE+/3DtWDKLSSG3cGVadLbSCKuQOJsR8xJP0uHTRO7kWKEndizoXbF2KPHwWM47fwitpzq8hzVpXoYu4qxj0ObS+SYK+b55I/2VYTpq2O9hC76hJgSfEqyFMgBDV2Dhb4dqT3w4BkJcdq/2B0wclrLy7yK7MKxU/MrGl1TKdNbGvrG3djIW7zfKzfJ8fgcO/bljjB9OkbQd78r9gpFW7nkUpVMjfgOsrrTr1HAwmap//Pt0EGv3vCpLcpVHPMnHdpNa6yOyMRS1UR1G+VzfsSl"
     }
   },
   "variables": {
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'zk')]",
     "availabilitySetName": "zookeeperAvSet",
-    "virtualNetworkName": "zookeeperVNET",
-    "vnetAddressPrefix": "10.0.0.0/16",
+    "virtualNetworkName": "zookeeperVNET",    
     "publicIPAddressType": "Dynamic",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
     "subnet1Name": "Subnet-1",
@@ -110,27 +113,6 @@
     },
     {
       "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('vnetAddressPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnet1Name')]",
-            "properties": {
-              "addressPrefix": "[variables('subnet1Prefix')]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-05-01-preview",
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[concat(variables('nicName'), copyIndex())]",
       "location": "[resourceGroup().location]",
@@ -148,12 +130,12 @@
             "name": "ipconfig1",
             "properties": {
               "privateIPAllocationMethod": "Static",
-              "privateIPAddress": "[concat('10.0.0.', copyIndex(4))]",
+              "privateIPAddress": "[concat('10.0.172.', copyIndex(4))]",
               "publicIPAddress": {
                 "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat('publicIP', copyIndex()))]"
               },
               "subnet": {
-                "id": "[variables('subnet1Ref')]"
+                "id": "/subscriptions/e09913f8-3087-41de-acb0-eda746af283a/resourceGroups/videocites/providers/Microsoft.Network/virtualNetworks/videocites/subnets/default"
               }
             }
           }
@@ -184,7 +166,16 @@
         "osProfile": {
           "computername": "[concat(parameters('vmName'), copyIndex())]",
           "adminUsername": "[parameters('adminUserName')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": "true",
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[variables('sshKeyPath')]",
+                  "keyData": "[parameters('sshKeyData')]"
+                }
+              ]
+            }
         },
         "storageProfile": {
           "imageReference": {
